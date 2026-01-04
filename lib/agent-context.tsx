@@ -36,9 +36,9 @@ export function AgentProvider({ children }: { children: ReactNode }) {
           setIsConnected(true);
           setError(null);
         })
-        .catch(() => {
+        .catch((err) => {
           setIsConnected(false);
-          setError('Agent is unreachable');
+          setError(err instanceof Error ? err.message : 'Agent is unreachable');
         })
         .finally(() => {
           setIsLoading(false);
@@ -88,7 +88,7 @@ export function AgentProvider({ children }: { children: ReactNode }) {
       setError(null);
     } catch (err) {
       setIsConnected(false);
-      setError('Agent connection lost');
+      setError(err instanceof Error ? err.message : 'Agent connection lost');
     }
   };
 

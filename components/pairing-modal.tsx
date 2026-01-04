@@ -48,7 +48,19 @@ export function PairingModal() {
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <div className="space-y-1">
+                <AlertDescription className="font-medium">{error}</AlertDescription>
+                {error.includes('Cannot reach agent') && (
+                  <p className="text-xs text-muted-foreground">
+                    Run <code className="bg-muted px-1 py-0.5 rounded">npm run agent</code> in a terminal first
+                  </p>
+                )}
+                {error.includes('Invalid') && (
+                  <p className="text-xs text-muted-foreground">
+                    Double-check the token from the agent console
+                  </p>
+                )}
+              </div>
             </Alert>
           )}
 
@@ -63,7 +75,7 @@ export function PairingModal() {
               className="font-mono text-sm"
             />
             <p className="text-xs text-muted-foreground">
-              Run <code className="bg-muted px-1 py-0.5 rounded">npm run agent</code> to start the agent and get the token
+              Run <code className="bg-muted px-1 py-0.5 rounded">npm run agent</code> in a terminal to start the agent and get the token
             </p>
           </div>
 

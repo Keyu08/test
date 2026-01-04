@@ -53,16 +53,30 @@ export class AgentClient {
   }
 
   async health(): Promise<{ status: string; version: string }> {
-    const response = await fetch(`${AGENT_URL}/health`, {
-      method: 'POST',
-      headers: this.getHeaders(),
-    });
+    try {
+      const response = await fetch(`${AGENT_URL}/health`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+      });
 
-    if (!response.ok) {
-      throw new Error(`Agent health check failed: ${response.status}`);
+      if (!response.ok) {
+        let errorMsg = `Agent health check failed: ${response.status}`;
+        try {
+          const data = await response.json();
+          if (data.error) errorMsg = data.error;
+        } catch {
+          // Ignore JSON parse errors
+        }
+        throw new Error(errorMsg);
+      }
+
+      return response.json();
+    } catch (err) {
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        throw new Error('Cannot reach agent. Is it running on http://127.0.0.1:7337?');
+      }
+      throw err;
     }
-
-    return response.json();
   }
 
   async parseDataset(csvContent: string): Promise<DatasetParseResponse> {
