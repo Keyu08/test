@@ -35,15 +35,28 @@ const server = createServer(async (req, res) => {
         res.end(JSON.stringify({ error: 'Access denied: non-local traffic' }));
         return;
     }
-    // Validate token
-    if (!validateToken(req)) {
-        res.writeHead(401, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Invalid or missing pairing token' }));
-        return;
-    }
     const method = req.method;
     const url = new URL(req.url || '', `http://${req.headers.host}`);
     const pathname = url.pathname;
+    // CORS headers for all responses
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Methodica-Token, X-CSRF-Token');
+    // Handle OPTIONS preflight (no auth required)
+    if (method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+    }
+    // /health and /ping do not require auth (liveness checks)
+    const isPublicEndpoint = pathname === '/health' || pathname === '/ping';
+    // Validate token for protected endpoints
+    if (!isPublicEndpoint && !validateToken(req)) {
+        res.setHeader('Content-Type', 'application/json');
+        res.writeHead(401);
+        res.end(JSON.stringify({ error: 'Invalid or missing pairing token' }));
+        return;
+    }
     res.setHeader('Content-Type', 'application/json');
     try {
         if (pathname === '/health' && method === 'POST') {
